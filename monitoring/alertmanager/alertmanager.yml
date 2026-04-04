@@ -1,0 +1,52 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: smtp.gmail.com:587
+  smtp_from: "${ALERTMANAGER_SMTP_FROM}"
+  smtp_auth_username: "${ALERTMANAGER_SMTP_FROM}"
+  smtp_auth_password: "${ALERTMANAGER_SMTP_PASSWORD}"
+  smtp_require_tls: true
+
+route:
+  group_by: [alertname, severity, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: noc-default
+
+  routes:
+    - match:
+        severity: critical
+      receiver: noc-critical
+      continue: true
+
+    - match:
+        severity: warning
+      receiver: noc-default
+
+receivers:
+  - name: noc-default
+    email_configs:
+      - to: "${ALERTMANAGER_RECEIVER_EMAIL}"
+        send_resolved: true
+        headers:
+          Subject: "[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }} — {{ .GroupLabels.service }}"
+    webhook_configs:
+      - url: http://webhook-bridge:8001/webhook/grafana-alert
+        send_resolved: true
+
+  - name: noc-critical
+    email_configs:
+      - to: "${ALERTMANAGER_RECEIVER_EMAIL}"
+        send_resolved: true
+        headers:
+          Subject: "[P1 CRITICAL] {{ .GroupLabels.alertname }} — {{ .GroupLabels.service }}"
+    webhook_configs:
+      - url: http://webhook-bridge:8001/webhook/grafana-alert
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: [alertname, service]

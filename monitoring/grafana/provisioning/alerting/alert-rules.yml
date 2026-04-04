@@ -1,0 +1,164 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: NOC Sentinel Alerts
+    folder: NOC Alerts
+    interval: 1m
+    rules:
+
+      # ── FastAPI service down (P1) ───────────────────────────
+      - uid: noc-alert-service-down
+        title: FastAPI service down
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: up{job="fastapi-app"}
+              instant: true
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        labels:
+          team: noc
+          severity: critical
+          service: fastapi-app
+        annotations:
+          summary: FastAPI app is unreachable
+          description: "The FastAPI service has been down for more than 1 minute."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-service-down.md"
+        isPaused: false
+
+      # ── High CPU (P2) ───────────────────────────────────────
+      - uid: noc-alert-high-cpu
+        title: Host CPU high
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) * 100
+              instant: true
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              conditions:
+                - evaluator:
+                    params: [80]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        labels:
+          team: noc
+          severity: warning
+          service: host
+        annotations:
+          summary: Host CPU usage above 80%
+          description: "CPU utilization has been above 80% for more than 3 minutes."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-high-cpu.md"
+        isPaused: false
+
+      # ── Disk critical (P1) ──────────────────────────────────
+      - uid: noc-alert-disk-critical
+        title: Host disk critical
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100
+              instant: true
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              conditions:
+                - evaluator:
+                    params: [85]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        labels:
+          team: noc
+          severity: critical
+          service: host
+        annotations:
+          summary: Host disk space below 85% available (>15% used)
+          description: "Available disk space has dropped below 85% (disk usage exceeds 15%)."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-disk-critical.md"
+        isPaused: false

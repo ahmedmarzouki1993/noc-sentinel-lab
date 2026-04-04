@@ -1,0 +1,42 @@
+groups:
+  - name: noc-sentinel-alerts
+    rules:
+
+      # ── P1: FastAPI service down ────────────────────────────
+      - alert: FastAPI service down
+        expr: up{job="fastapi-app"} == 0
+        for: 1m
+        labels:
+          team: noc
+          severity: critical
+          service: fastapi-app
+        annotations:
+          summary: "FastAPI app is unreachable"
+          description: "The FastAPI monitoring target has been down for more than 1 minute. Prometheus cannot scrape {{ $labels.instance }}."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-service-down.md"
+
+      # ── P2: High CPU ────────────────────────────────────────
+      - alert: Host CPU high
+        expr: (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m]))) * 100 > 80
+        for: 3m
+        labels:
+          team: noc
+          severity: warning
+          service: host
+        annotations:
+          summary: "Host CPU usage above 80%"
+          description: "CPU utilization on {{ $labels.instance }} has been above 80% for more than 3 minutes. Current value: {{ $value | printf \"%.1f\" }}%."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-high-cpu.md"
+
+      # ── P1: Disk critical ───────────────────────────────────
+      - alert: Host disk critical
+        expr: (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) * 100 < 85
+        for: 2m
+        labels:
+          team: noc
+          severity: critical
+          service: host
+        annotations:
+          summary: "Host disk space below 85% available (>15% used)"
+          description: "Available disk space on {{ $labels.instance }} ({{ $labels.mountpoint }}) has dropped below 85% available. Current: {{ $value | printf \"%.1f\" }}% free."
+          runbook_url: "https://github.com/ahmedmarzouki1993/noc-sentinel-lab/blob/main/runbooks/runbook-disk-critical.md"
