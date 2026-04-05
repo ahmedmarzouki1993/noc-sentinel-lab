@@ -22,7 +22,7 @@ This is a P1 — act immediately.
 
 ## 3. Prerequisites
 
-- SSH access to the VM: `ssh azureuser@20.74.250.179`
+- SSH access to the VM: `ssh azureuser@YOUR_VM_PUBLIC_IP`
 - Docker CLI access on VM
 - Do NOT delete files without identifying what they are first
 
@@ -39,7 +39,7 @@ This is a P1 — act immediately.
 ## 5. Initial triage (first 2 minutes)
 
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 
 # 1. Confirm disk usage
 df -h /
@@ -57,7 +57,7 @@ docker compose -f ~/noc-sentinel-lab/docker-compose.yml ps
 ## 6. Investigation commands
 
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 
 # Find largest directories under /var (most common culprit)
 du -sh /var/* 2>/dev/null | sort -rh | head -10

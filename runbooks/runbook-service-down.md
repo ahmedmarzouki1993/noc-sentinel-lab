@@ -22,9 +22,9 @@ Jira ticket auto-created as `Incident` with `Highest` priority.
 
 ## 3. Prerequisites
 
-- SSH access to the VM: `ssh azureuser@20.74.250.179`
+- SSH access to the VM: `ssh azureuser@YOUR_VM_PUBLIC_IP`
 - Docker CLI access: `docker compose ps` in `~/noc-sentinel-lab`
-- Access to Grafana: `http://20.74.250.179:3000`
+- Access to Grafana: `http://YOUR_VM_PUBLIC_IP:3000`
 - Access to Jira: `https://ahmedmarzouki1993.atlassian.net/browse/NOC`
 
 ---
@@ -36,7 +36,7 @@ Jira ticket auto-created as `Incident` with `Highest` priority.
 - **Jira:** New `Incident` ticket auto-created (`NOC-X`)
 - **Direct health check fails:**
   ```bash
-  curl -sf http://20.74.250.179:8000/health || echo "SERVICE DOWN"
+  curl -sf http://YOUR_VM_PUBLIC_IP:8000/health || echo "SERVICE DOWN"
   ```
 
 ---
@@ -45,10 +45,10 @@ Jira ticket auto-created as `Incident` with `Highest` priority.
 
 ```bash
 # 1. Confirm service is down
-curl -sf http://20.74.250.179:8000/health || echo "DOWN CONFIRMED"
+curl -sf http://YOUR_VM_PUBLIC_IP:8000/health || echo "DOWN CONFIRMED"
 
 # 2. Check container status
-ssh azureuser@20.74.250.179 "docker compose -f ~/noc-sentinel-lab/docker-compose.yml ps fastapi-app"
+ssh azureuser@YOUR_VM_PUBLIC_IP "docker compose -f ~/noc-sentinel-lab/docker-compose.yml ps fastapi-app"
 
 # 3. Assign the Jira ticket to yourself and move to "In Progress"
 ```
@@ -58,7 +58,7 @@ ssh azureuser@20.74.250.179 "docker compose -f ~/noc-sentinel-lab/docker-compose
 ## 6. Investigation commands
 
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 
 # Container state
 docker compose -f ~/noc-sentinel-lab/docker-compose.yml ps
@@ -88,7 +88,7 @@ df -h
 
 ### A — Container stopped (most common)
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 cd ~/noc-sentinel-lab
 docker compose start fastapi-app
 ```
@@ -121,11 +121,11 @@ docker compose restart fastapi-app
 
 ```bash
 # Service responds healthy
-curl -s http://20.74.250.179:8000/health | python3 -m json.tool
+curl -s http://YOUR_VM_PUBLIC_IP:8000/health | python3 -m json.tool
 # Expected: "status": "healthy"
 
 # Prometheus scrape recovers
-curl -s 'http://20.74.250.179:9090/api/v1/query?query=up{job="fastapi-app"}' \
+curl -s 'http://YOUR_VM_PUBLIC_IP:9090/api/v1/query?query=up{job="fastapi-app"}' \
   | python3 -m json.tool | grep value
 # Expected: "1"
 ```

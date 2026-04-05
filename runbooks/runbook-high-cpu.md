@@ -22,8 +22,8 @@ Grafana alert fires as P2 Warning. Monitor closely — can escalate to P1 if ser
 
 ## 3. Prerequisites
 
-- SSH access to the VM: `ssh azureuser@20.74.250.179`
-- Access to Grafana CPU panel: `http://20.74.250.179:3000/d/noc-main`
+- SSH access to the VM: `ssh azureuser@YOUR_VM_PUBLIC_IP`
+- Access to Grafana CPU panel: `http://YOUR_VM_PUBLIC_IP:3000/d/noc-main`
 - Docker CLI access on VM
 
 ---
@@ -39,7 +39,7 @@ Grafana alert fires as P2 Warning. Monitor closely — can escalate to P1 if ser
 ## 5. Initial triage (first 2 minutes)
 
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 
 # 1. Confirm CPU spike is real
 top -bn1 | head -15
@@ -56,7 +56,7 @@ curl -sf http://localhost:8000/health && echo "APP HEALTHY" || echo "APP DEGRADE
 ## 6. Investigation commands
 
 ```bash
-ssh azureuser@20.74.250.179
+ssh azureuser@YOUR_VM_PUBLIC_IP
 
 # Host-level: top CPU processes
 ps aux --sort=-%cpu | head -15
